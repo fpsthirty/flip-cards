@@ -991,6 +991,55 @@ header p {
     max-height: none;
 }
 
+.export-import-section {
+    margin-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 15px;
+}
+
+.export-import-section h3 {
+    color: #333;
+    font-size: 1em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.export-import-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.export-btn {
+    background: linear-gradient(135deg, #6b8c9e 0%, #5a7a8c 100%);
+    color: white;
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 12px;
+}
+
+.import-btn {
+    background: linear-gradient(135deg, #9b8bb5 0%, #7a6a94 100%);
+    color: white;
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 12px;
+}
+
+.export-btn:hover, .import-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.export-hint {
+    color: #666;
+    font-size: 10px;
+    font-style: italic;
+    text-align: center;
+}
+
 @media (max-width: 900px) {
     .view-mode .board-header h2 {
         font-size: 1.5em;

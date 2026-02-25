@@ -74,12 +74,23 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Блок экспорта/импорта -->
+                <div class="export-import-section">
+                    <h3>📦 Экспорт/Импорт</h3>
+                    <div class="export-import-buttons">
+                        <button id="exportBoards" class="btn export-btn">📤 Экспортировать доски</button>
+                        <button id="importBoards" class="btn import-btn">📥 Импортировать доски</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;">
+                    </div>
+                    <p class="export-hint">Сохраните файл с досками и перенесите на другой компьютер</p>
+                </div>
             </div>
 
             <!-- Редактор плиток (средняя колонка) -->
             <div class="editor-panel" id="editorPanel">
                 <h2>Редактирование плиток</h2>
-                <p class="editor-hint">Кликните по плитке, чтобы ввести текст и выбрать цвет</p>
+                <p class="editor-hint">Кликните по плитке, чтобы ввести текст и выбрать цвет</p>
                 <div id="tileEditor" class="tile-editor" style="display: none;">
                     <div class="editor-header">
                         <label>Редактирование плитки <span id="currentTileNum"></span>:</label>

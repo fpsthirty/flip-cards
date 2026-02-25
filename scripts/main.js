@@ -111,6 +111,11 @@ function setupEventListeners() {
         removeEditingBorder();
         selectedTileIndex = null;
     });
+    document.getElementById('exportBoards').addEventListener('click', exportBoards);
+    document.getElementById('importBoards').addEventListener('click', () => {
+        document.getElementById('importFile').click();
+    });
+    document.getElementById('importFile').addEventListener('change', importBoards);
     
     // Обработчик для чекбокса анимации в редакторе
     document.getElementById('specialAnimation').addEventListener('change', function(e) {
@@ -936,4 +941,91 @@ function copyShareLink() {
     navigator.clipboard.writeText(fullUrl).then(() => {
         showSuccessPopup('Полная ссылка скопирована в буфер обмена');
     });
+}
+
+function exportBoards() {
+    // Собираем все доски
+    const allBoards = {
+        boards: boards,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    // Преобразуем в JSON с красивым форматированием
+    const jsonData = JSON.stringify(allBoards, null, 2);
+    
+    // Создаём blob и скачиваем файл
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tile-boards-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showSuccessPopup('Доски экспортированы!');
+}
+
+function importBoards(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // Проверяем структуру файла
+            if (!importedData.boards || typeof importedData.boards !== 'object') {
+                throw new Error('Неверный формат файла');
+            }
+            
+            // Проверяем, есть ли конфликты
+            const existingCount = Object.keys(boards).length;
+            const importedCount = Object.keys(importedData.boards).length;
+            
+            if (existingCount > 0) {
+                const confirmMessage = 
+                    `У вас уже есть ${existingCount} сохранённых досок.\n` +
+                    `Вы хотите:\n` +
+                    `- OK: Добавить импортированные доски к существующим\n` +
+                    `- Отмена: Заменить все существующие доски импортированными`;
+                
+                if (confirm(confirmMessage)) {
+                    // Добавляем к существующим
+                    boards = { ...boards, ...importedData.boards };
+                } else {
+                    // Заменяем
+                    if (confirm('Заменить все существующие доски? Это действие нельзя отменить!')) {
+                        boards = importedData.boards;
+                    } else {
+                        return;
+                    }
+                }
+            } else {
+                boards = importedData.boards;
+            }
+            
+            // Сохраняем в localStorage
+            localStorage.setItem('tileBoards', JSON.stringify(boards));
+            
+            // Обновляем список досок
+            updateBoardsList();
+            
+            // Показываем сообщение об успехе
+            showSuccessPopup(`Импортировано ${importedCount} досок!`);
+            
+            // Сбрасываем input
+            document.getElementById('importFile').value = '';
+            
+        } catch (error) {
+            alert('Ошибка при импорте файла: ' + error.message);
+        }
+    };
+    
+    reader.readAsText(file);
 }
