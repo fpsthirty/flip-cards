@@ -681,6 +681,10 @@ function loadBoard(boardId, viewMode = false) {
     isViewMode = viewMode;
     renderBoard();
     
+    if (viewMode) {
+        addNavigationBar();
+    }
+    
     if (!viewMode) {
         document.getElementById('rows').value = board.rows;
         document.getElementById('cols').value = board.cols;
@@ -967,6 +971,60 @@ function exportBoards() {
     URL.revokeObjectURL(url);
     
     showSuccessPopup('Доски экспортированы!');
+}
+
+// Добавление навигационной панели
+function addNavigationBar() {
+    // Удаляем существующую навигацию, если есть
+    const existingNav = document.querySelector('.nav-bar');
+    if (existingNav) {
+        existingNav.remove();
+    }
+    
+    const existingTrigger = document.querySelector('.nav-trigger');
+    if (existingTrigger) {
+        existingTrigger.remove();
+    }
+    
+    // Создаем триггерную зону
+    const trigger = document.createElement('div');
+    trigger.className = 'nav-trigger';
+    document.body.appendChild(trigger);
+    
+    // Создаем навигационную панель
+    const navBar = document.createElement('div');
+    navBar.className = 'nav-bar';
+    navBar.innerHTML = `
+        <span>
+            <span class="arrow">←</span>
+            Вернуться в редактор
+        </span>
+    `;
+    document.body.appendChild(navBar);
+    
+    // Показываем панель при наведении на триггер
+    trigger.addEventListener('mouseenter', () => {
+        navBar.classList.add('visible');
+    });
+    
+    // Скрываем панель, когда мышь покидает панель
+    navBar.addEventListener('mouseleave', () => {
+        navBar.classList.remove('visible');
+    });
+    
+    // Также скрываем, когда мышь покидает триггер (если не перешла на панель)
+    trigger.addEventListener('mouseleave', (e) => {
+        // Проверяем, не перешла ли мышь на панель
+        const relatedTarget = e.relatedTarget;
+        if (!navBar.contains(relatedTarget)) {
+            navBar.classList.remove('visible');
+        }
+    });
+    
+    // Обработчик клика для перехода на главную
+    navBar.addEventListener('click', () => {
+        window.location.href = window.location.pathname;
+    });
 }
 
 function importBoards(event) {

@@ -1166,6 +1166,68 @@ header p {
     color: white;
 }
 
+/* Навигационная панель для режима просмотра */
+.view-mode .nav-bar {
+    position: fixed;
+    top: -60px; /* Изначально скрыта над страницей */
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: top 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.view-mode .nav-bar.visible {
+    top: 0; /* Показываем при наведении */
+}
+
+.view-mode .nav-bar span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.view-mode .nav-bar .arrow {
+    font-size: 20px;
+    transition: transform 0.2s;
+}
+
+.view-mode .nav-bar:hover .arrow {
+    transform: translateX(-5px); /* Анимация стрелки при наведении */
+}
+
+/* Триггерная зона для показа навигации */
+.view-mode .nav-trigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    z-index: 999;
+    background: transparent;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .view-mode .nav-bar {
+        height: 40px;
+        font-size: 14px;
+    }
+    
+    .view-mode .nav-bar span {
+        gap: 5px;
+    }
+}
+
 @media (max-width: 900px) {
     .view-mode .board-header h2 {
         font-size: 1.5em;
