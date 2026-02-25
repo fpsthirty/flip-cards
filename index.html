@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивная доска с плитками</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="icon" href="images/favicon/favicon-50x50.png" type="image/png">
+    <link rel="icon" sizes="16x16" href="images/favicon/favicon-50x50.png?v=">
+    <link rel="icon" sizes="32x32" href="images/favicon/favicon-100x100.png?v=">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Конструктор доски с плитками</h1>
+            <p>Создайте свою доску, заполните текстом обратные стороны плиток и предоставьте своей аудитории выбор счастливого варианта</p>
+        </header>
+
+        <div class="main-content" id="mainContent">
+            <!-- Панель управления (левая колонка) -->
+            <div class="control-panel" id="controlPanel">
+                <h2>Настройки доски</h2>
+                
+                <!-- Название доски -->
+                <div class="input-group">
+                    <label for="boardName">Название доски:</label>
+                    <input type="text" id="boardName" placeholder="Например: Новогодняя лотерея" value="Моя доска">
+                </div>
+                
+                <!-- Строки и столбцы в одной строке -->
+                <div class="dimensions-row">
+                    <div class="input-group">
+                        <label for="cols">Столбцы:</label>
+                        <input type="number" id="cols" min="1" max="12" value="4">
+                    </div>
+                    <div class="input-group">
+                        <label for="rows">Строки:</label>
+                        <input type="number" id="rows" min="1" max="12" value="3">
+                    </div>
+                </div>
+                
+                <button id="createBoard" class="btn primary">Обновить кол-во ячеек</button>
+                
+                <!-- Кнопка сохранения доски -->
+                <button id="saveBoard" class="btn success">💾 Сохранить доску</button>
+
+                <!-- Секция ссылки (перемещена из "Доступ к доске") -->
+                <div class="share-section" id="shareSection" style="display: none;">
+                    <p>ID доски:</p>
+                    <div class="share-link">
+                        <input type="text" id="boardId" readonly placeholder="ID доски">
+                        <button id="copyLink" class="btn small">Копировать ссылку</button>
+                    </div>
+                </div>
+                
+                <!-- Уведомление об успехе (попап) -->
+                <div id="successPopup" class="success-popup" style="display: none;">
+                    <div class="popup-content">
+                        <span class="popup-icon">✅</span>
+                        <span class="popup-message" id="popupMessage"></span>
+                    </div>
+                </div>
+                
+                <!-- Блок "Мои доски" (только приватные) -->
+                <div class="my-boards-section">
+                    <h3>📁 Мои доски</h3>
+                    
+                    <div class="boards-list">
+                        <div class="boards-category">
+                            <div id="privateBoardsList" class="boards-container">
+                                <!-- Приватные доски будут добавлены через JS -->
+                                <div class="empty-message">Нет сохранённых досок</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Редактор плиток (средняя колонка) -->
+            <div class="editor-panel" id="editorPanel">
+                <h2>Редактирование плиток</h2>
+                <p class="editor-hint">Кликните по плитке, чтобы ввести текст и выбрать цвет</p>
+                <div id="tileEditor" class="tile-editor" style="display: none;">
+                    <div class="editor-header">
+                        <label>Редактирование плитки <span id="currentTileNum"></span>:</label>
+                        <button id="closeEditor" class="btn-icon">✕</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="tileTitle">Название плитки:</label>
+                        <input type="text" id="tileTitle" placeholder="По умолчанию отображается номер плитки">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="tileText">Текст на обратной стороне:</label>
+                        <textarea id="tileText" rows="2" placeholder="Введите текст для обратной стороны"></textarea>
+                    </div>
+                    
+                    <div class="color-picker-section">
+                        <label>Цвет плитки:</label>
+                        <div class="color-presets" id="colorPresets"></div>
+                    </div>
+                    
+                    <div class="animation-section">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="specialAnimation">
+                            <span class="checkbox-text">✨Праздничная анимация</span>
+                        </label>
+                    </div>
+                    
+                    <button id="saveTileText" class="btn small save-btn">💾 Сохранить и далее</button>
+                </div>
+            </div>
+
+            <!-- Доска с плитками (правая колонка) -->
+            <div class="board-container">
+                <div class="board-header">
+                    <h2 id="boardTitle">Доска (превью) <span id="boardDimensions"></span></h2>
+                </div>
+                <div class="board-wrapper" id="boardWrapper">
+                    <div id="board" class="board"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/main.js"></script>
+</body>
+</html>
