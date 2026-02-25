@@ -984,46 +984,90 @@ function importBoards(event) {
                 throw new Error('Неверный формат файла');
             }
             
-            // Проверяем, есть ли конфликты
             const existingCount = Object.keys(boards).length;
             const importedCount = Object.keys(importedData.boards).length;
             
             if (existingCount > 0) {
-                const confirmMessage = 
-                    `У вас уже есть ${existingCount} сохранённых досок.\n` +
-                    `Вы хотите:\n` +
-                    `- OK: Добавить импортированные доски к существующим\n` +
-                    `- Отмена: Заменить все существующие доски импортированными`;
+                // Создаем кастомное диалоговое окно
+                const dialog = document.createElement('div');
+                dialog.className = 'import-dialog';
+                dialog.innerHTML = `
+                    <div class="import-dialog-content">
+                        <h3>📦 Импорт досок</h3>
+                        <p>У вас уже есть <strong>${existingCount}</strong> сохранённых досок.</p>
+                        <p>В импортируемом файле <strong>${importedCount}</strong> досок.</p>
+                        <p>Выберите действие:</p>
+                        <div class="import-dialog-actions">
+                            <button class="import-dialog-btn add-btn">➕ Добавить к существующим</button>
+                            <button class="import-dialog-btn replace-btn">🔄 Заменить все доски</button>
+                            <button class="import-dialog-btn cancel-btn">✕ Отмена</button>
+                        </div>
+                    </div>
+                `;
                 
-                if (confirm(confirmMessage)) {
-                    // Добавляем к существующим
+                document.body.appendChild(dialog);
+                
+                // Обработчики кнопок
+                dialog.querySelector('.add-btn').onclick = () => {
                     boards = { ...boards, ...importedData.boards };
-                } else {
-                    // Заменяем
-                    if (confirm('Заменить все существующие доски? Это действие нельзя отменить!')) {
+                    localStorage.setItem('tileBoards', JSON.stringify(boards));
+                    updateBoardsList();
+                    showSuccessPopup(`Добавлено ${importedCount} досок!`);
+                    dialog.remove();
+                    document.getElementById('importFile').value = '';
+                };
+                
+                dialog.querySelector('.replace-btn').onclick = () => {
+                    // Создаем диалог подтверждения
+                    const confirmDialog = document.createElement('div');
+                    confirmDialog.className = 'import-dialog';
+                    confirmDialog.innerHTML = `
+                        <div class="import-dialog-content confirm-dialog">
+                            <h3>⚠️ Подтверждение замены</h3>
+                            <p>Вы уверены, что хотите <strong>заменить все существующие доски</strong>?</p>
+                            <p class="warning-text">Это действие нельзя отменить!</p>
+                            <div class="import-dialog-actions">
+                                <button class="import-dialog-btn confirm-yes">✅ Да, заменить</button>
+                                <button class="import-dialog-btn confirm-no">✕ Нет, отмена</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(confirmDialog);
+                    
+                    confirmDialog.querySelector('.confirm-yes').onclick = () => {
                         boards = importedData.boards;
-                    } else {
-                        return;
-                    }
-                }
+                        localStorage.setItem('tileBoards', JSON.stringify(boards));
+                        updateBoardsList();
+                        showSuccessPopup(`Заменено на ${importedCount} досок!`);
+                        confirmDialog.remove();
+                        dialog.remove();
+                        document.getElementById('importFile').value = '';
+                    };
+                    
+                    confirmDialog.querySelector('.confirm-no').onclick = () => {
+                        confirmDialog.remove();
+                        // Первый диалог остается открытым
+                    };
+                };
+                
+                dialog.querySelector('.cancel-btn').onclick = () => {
+                    dialog.remove();
+                    document.getElementById('importFile').value = '';
+                };
+                
             } else {
+                // Если нет существующих досок, просто импортируем
                 boards = importedData.boards;
+                localStorage.setItem('tileBoards', JSON.stringify(boards));
+                updateBoardsList();
+                showSuccessPopup(`Импортировано ${importedCount} досок!`);
+                document.getElementById('importFile').value = '';
             }
-            
-            // Сохраняем в localStorage
-            localStorage.setItem('tileBoards', JSON.stringify(boards));
-            
-            // Обновляем список досок
-            updateBoardsList();
-            
-            // Показываем сообщение об успехе
-            showSuccessPopup(`Импортировано ${importedCount} досок!`);
-            
-            // Сбрасываем input
-            document.getElementById('importFile').value = '';
             
         } catch (error) {
             alert('Ошибка при импорте файла: ' + error.message);
+            document.getElementById('importFile').value = '';
         }
     };
     
