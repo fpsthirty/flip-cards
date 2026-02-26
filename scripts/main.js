@@ -8,6 +8,7 @@ let currentBoard = {
     tiles: []
 };
 
+let pageLoadTime = Date.now();
 let selectedTileIndex = null;
 let resizeObserver = null;
 let isViewMode = false;
@@ -682,6 +683,9 @@ function loadBoard(boardId, viewMode = false) {
     renderBoard();
     
     if (viewMode) {
+        // Сбрасываем время загрузки
+        pageLoadTime = Date.now();
+        // Добавляем навигационные панели
         addNavigationBar();
     }
     
@@ -721,13 +725,17 @@ function updateBoardsList() {
 }
 
 function createBoardListItem(id, board) {
-    const div = document.createElement('div');
-    div.className = 'board-item';
+    // Создаем ссылку вместо div
+    const link = document.createElement('a');
+    link.href = `${window.location.pathname}?board=${id}`;
+    link.className = 'board-item';
+    link.setAttribute('target', '_blank'); // Открытие в новой вкладке
+    link.setAttribute('rel', 'noopener noreferrer'); // Безопасность
     
-    // Добавляем title к родительскому div, если название длиннее 15 символов
+    // Добавляем title к ссылке, если название длиннее 15 символов
     const boardName = board.name || 'Без названия';
     if (boardName.length > 15) {
-        div.title = boardName; // Тултип на родительском элементе
+        link.title = boardName;
     }
     
     const nameSpan = document.createElement('span');
@@ -743,6 +751,7 @@ function createBoardListItem(id, board) {
     editBtn.innerHTML = '✏️';
     editBtn.title = 'Редактировать доску';
     editBtn.onclick = (e) => {
+        e.preventDefault(); // Предотвращаем переход по ссылке
         e.stopPropagation();
         handleEditBoard(id);
     };
@@ -752,6 +761,7 @@ function createBoardListItem(id, board) {
     deleteBtn.innerHTML = '🗑️';
     deleteBtn.title = 'Удалить доску';
     deleteBtn.onclick = (e) => {
+        e.preventDefault(); // Предотвращаем переход по ссылке
         e.stopPropagation();
         if (confirm('Удалить эту доску?')) {
             delete boards[id];
@@ -761,16 +771,12 @@ function createBoardListItem(id, board) {
         }
     };
     
-    div.appendChild(nameSpan);
-    div.appendChild(dimsSpan);
-    div.appendChild(editBtn);
-    div.appendChild(deleteBtn);
+    link.appendChild(nameSpan);
+    link.appendChild(dimsSpan);
+    link.appendChild(editBtn);
+    link.appendChild(deleteBtn);
     
-    div.addEventListener('click', () => {
-        window.location.href = `${window.location.pathname}?board=${id}`;
-    });
-    
-    return div;
+    return link;
 }
 
 function handleEditBoard(id) {
@@ -973,58 +979,209 @@ function exportBoards() {
     showSuccessPopup('Доски экспортированы!');
 }
 
-// Добавление навигационной панели
+// Добавление навигационных панелей
 function addNavigationBar() {
-    // Удаляем существующую навигацию, если есть
+    // Константа для времени показа навигации (3 секунды)
+    const NAV_SHOW_TIME = 3000; // 3 секунды в миллисекундах
+    
+    // Удаляем существующие элементы, если есть
     const existingNav = document.querySelector('.nav-bar');
-    if (existingNav) {
-        existingNav.remove();
-    }
+    const existingFooter = document.querySelector('.footer-bar');
+    const existingNavTrigger = document.querySelector('.nav-trigger');
+    const existingFooterTrigger = document.querySelector('.footer-trigger');
     
-    const existingTrigger = document.querySelector('.nav-trigger');
-    if (existingTrigger) {
-        existingTrigger.remove();
-    }
+    if (existingNav) existingNav.remove();
+    if (existingFooter) existingFooter.remove();
+    if (existingNavTrigger) existingNavTrigger.remove();
+    if (existingFooterTrigger) existingFooterTrigger.remove();
     
-    // Создаем триггерную зону
-    const trigger = document.createElement('div');
-    trigger.className = 'nav-trigger';
-    document.body.appendChild(trigger);
+    // Создаем триггерные зоны
+    const navTrigger = document.createElement('div');
+    navTrigger.className = 'nav-trigger';
+    document.body.appendChild(navTrigger);
     
-    // Создаем навигационную панель
+    const footerTrigger = document.createElement('div');
+    footerTrigger.className = 'footer-trigger';
+    document.body.appendChild(footerTrigger);
+    
+    // Создаем навигационную панель (верх)
     const navBar = document.createElement('div');
     navBar.className = 'nav-bar';
     navBar.innerHTML = `
         <span>
             <span class="arrow">←</span>
-            Вернуться в редактор
+            вернуться в редактор
         </span>
     `;
     document.body.appendChild(navBar);
     
-    // Показываем панель при наведении на триггер
-    trigger.addEventListener('mouseenter', () => {
+    // Создаем футер (низ)
+    const footerBar = document.createElement('div');
+    footerBar.className = 'footer-bar';
+    footerBar.innerHTML = `
+        <span>
+            <span class="arrow">🔍</span>
+            раскрыть все карточки
+        </span>
+    `;
+    document.body.appendChild(footerBar);
+    
+    // Показываем обе панели первые NAV_SHOW_TIME миллисекунд
+    navBar.classList.add('visible');
+    footerBar.classList.add('visible');
+    
+    setTimeout(() => {
+        // После NAV_SHOW_TIME скрываем, если мышь не на триггерах
+        if (!navTrigger.matches(':hover') && !navBar.matches(':hover')) {
+            navBar.classList.remove('visible');
+        }
+        if (!footerTrigger.matches(':hover') && !footerBar.matches(':hover')) {
+            footerBar.classList.remove('visible');
+        }
+    }, NAV_SHOW_TIME);
+    
+    // Логика для верхней панели
+    navTrigger.addEventListener('mouseenter', () => {
         navBar.classList.add('visible');
     });
     
-    // Скрываем панель, когда мышь покидает панель
     navBar.addEventListener('mouseleave', () => {
-        navBar.classList.remove('visible');
-    });
-    
-    // Также скрываем, когда мышь покидает триггер (если не перешла на панель)
-    trigger.addEventListener('mouseleave', (e) => {
-        // Проверяем, не перешла ли мышь на панель
-        const relatedTarget = e.relatedTarget;
-        if (!navBar.contains(relatedTarget)) {
-            navBar.classList.remove('visible');
+        // Не скрываем, если не прошло NAV_SHOW_TIME
+        if (document.querySelector('.nav-bar.visible') === navBar) {
+            // Проверяем, прошло ли NAV_SHOW_TIME
+            const timeSinceLoad = Date.now() - pageLoadTime;
+            if (timeSinceLoad > NAV_SHOW_TIME) {
+                navBar.classList.remove('visible');
+            }
         }
     });
     
-    // Обработчик клика для перехода на главную
-    navBar.addEventListener('click', () => {
-        window.location.href = window.location.pathname;
+    navTrigger.addEventListener('mouseleave', (e) => {
+        const relatedTarget = e.relatedTarget;
+        if (!navBar.contains(relatedTarget) && !navTrigger.contains(relatedTarget)) {
+            const timeSinceLoad = Date.now() - pageLoadTime;
+            if (timeSinceLoad > NAV_SHOW_TIME) {
+                navBar.classList.remove('visible');
+            }
+        }
     });
+    
+    // Логика для нижней панели
+    footerTrigger.addEventListener('mouseenter', () => {
+        footerBar.classList.add('visible');
+    });
+    
+    footerBar.addEventListener('mouseleave', () => {
+        const timeSinceLoad = Date.now() - pageLoadTime;
+        if (timeSinceLoad > NAV_SHOW_TIME) {
+            footerBar.classList.remove('visible');
+        }
+    });
+    
+    footerTrigger.addEventListener('mouseleave', (e) => {
+        const relatedTarget = e.relatedTarget;
+        if (!footerBar.contains(relatedTarget) && !footerTrigger.contains(relatedTarget)) {
+            const timeSinceLoad = Date.now() - pageLoadTime;
+            if (timeSinceLoad > NAV_SHOW_TIME) {
+                footerBar.classList.remove('visible');
+            }
+        }
+    });
+    
+    // Обработчик клика для верхней панели (возврат в редактор)
+    navBar.addEventListener('click', () => {
+        showConfirmDialog(
+            'Переход к конструктору доски',
+            'После этого действия состояние доски сбросится до изначального. Продолжить?',
+            () => {
+                window.location.href = window.location.pathname;
+            }
+        );
+    });
+    
+    // Обработчик клика для нижней панели (раскрытие всех карточек)
+    footerBar.addEventListener('click', () => {
+        showConfirmDialog(
+            'Раскрытие всех карточек',
+            'После этого действия будут раскрыты ВСЕ оставшиеся неперевёрнутые карточки. Продолжить?',
+            () => {
+                revealAllCards();
+            }
+        );
+    });
+}
+
+function showConfirmDialog(title, message, onConfirm) {
+    const dialog = document.createElement('div');
+    dialog.className = 'import-dialog';
+    dialog.innerHTML = `
+        <div class="import-dialog-content confirm-dialog">
+            <h3>${title}</h3>
+            <div class="warning-text">${message}</div>
+            <div class="import-dialog-actions">
+                <button class="import-dialog-btn confirm-yes">✅ Продолжить</button>
+                <button class="import-dialog-btn confirm-no">✕ Отмена</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    dialog.querySelector('.confirm-yes').onclick = () => {
+        dialog.remove();
+        onConfirm();
+    };
+    
+    dialog.querySelector('.confirm-no').onclick = () => {
+        dialog.remove();
+    };
+}
+
+function revealAllCards() {
+    // Находим все неперевернутые плитки
+    const unflippedIndices = currentBoard.tiles
+        .map((tile, index) => ({ tile, index }))
+        .filter(item => !item.tile.flipped)
+        .map(item => item.index);
+    
+    if (unflippedIndices.length === 0) {
+        showSuccessPopup('✨ Все карточки уже раскрыты!');
+        return;
+    }
+    
+    let currentIndex = 0;
+    
+    function revealNext() {
+        if (currentIndex < unflippedIndices.length) {
+            const index = unflippedIndices[currentIndex];
+            
+            // Переворачиваем плитку БЕЗ вызова showTilePopup
+            currentBoard.tiles[index].flipped = true;
+            const tile = document.querySelector(`[data-index="${index}"]`);
+            if (tile) {
+                tile.classList.add('flipped');
+                
+                // Показываем праздничную анимацию если включена, но без попапа
+                if (currentBoard.tiles[index].animation) {
+                    tile.classList.add('celebrate');
+                    setTimeout(() => {
+                        tile.classList.remove('celebrate');
+                    }, 1000);
+                    
+                    // Добавляем конфетти для праздничных плиток
+                    createConfettiAroundElement(tile);
+                }
+            }
+            
+            currentIndex++;
+            
+            // Задержка перед следующей анимацией
+            setTimeout(revealNext, 100);
+        }
+    }
+    
+    // Запускаем первую анимацию
+    revealNext();
 }
 
 function importBoards(event) {
